@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TddAnalyzer.Test", "TddAnal
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TddAnalyzer.Vsix", "TddAnalyzer\TddAnalyzer.Vsix\TddAnalyzer.Vsix.csproj", "{6DD9D8DD-042C-40E8-A380-4B16C66A5108}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SuperTddAnalyzer", "SuperTddAnalyzer\SuperTddAnalyzer.csproj", "{DF82B2AD-ADEB-4671-AF15-7E0CB24B1600}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,6 +28,10 @@ Global
 		{6DD9D8DD-042C-40E8-A380-4B16C66A5108}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6DD9D8DD-042C-40E8-A380-4B16C66A5108}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6DD9D8DD-042C-40E8-A380-4B16C66A5108}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DF82B2AD-ADEB-4671-AF15-7E0CB24B1600}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DF82B2AD-ADEB-4671-AF15-7E0CB24B1600}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DF82B2AD-ADEB-4671-AF15-7E0CB24B1600}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DF82B2AD-ADEB-4671-AF15-7E0CB24B1600}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
