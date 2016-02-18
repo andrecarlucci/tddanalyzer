@@ -7,12 +7,12 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace TddAnalyzer {
-    class ReferenceFinder {
-        public void Find(string solutionPath, string methodName) {
+    public static class ReferenceFinder {
+        public static void Find(string solutionPath, string methodName) {
             var msWorkspace = MSBuildWorkspace.Create();
 
             List<ReferencedSymbol> referencesToMethod = new List<ReferencedSymbol>();
-            Console.WriteLine("Searching for method \"{0}\" reference in solution {1} ", methodName, Path.GetFileName(solutionPath));
+           // Console.WriteLine("Searching for method \"{0}\" reference in solution {1} ", methodName, Path.GetFileName(solutionPath));
             ISymbol methodSymbol = null;
             bool found = false;
 

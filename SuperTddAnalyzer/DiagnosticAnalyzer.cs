@@ -2,18 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using System.Text.RegularExpressions;
 using TddAnalyzer.Frameworks;
 using System.Reflection;
 using System.IO;
-using Microsoft.CodeAnalysis.Emit;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.MSBuild;
 
 namespace TddAnalyzer {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
@@ -24,6 +20,8 @@ namespace TddAnalyzer {
         private static readonly LocalizableString MessageFormat = new LocalizableResourceString(nameof(Resources.AnalyzerMessageFormat), Resources.ResourceManager, typeof(Resources));
         private static readonly LocalizableString Description = new LocalizableResourceString(nameof(Resources.AnalyzerDescription), Resources.ResourceManager, typeof(Resources));
         private const string Category = "Testing";
+
+        public static Dictionary<string, string> _references = new Dictionary<string, string>();
 
         private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             DiagnosticId, 
@@ -75,42 +73,73 @@ namespace TddAnalyzer {
                 return;
             }
 
-            var tree = context.SemanticModel.SyntaxTree;
-            var projectFile = Find(tree.FilePath, "*proj");
-            var solutionFile = Find(tree.FilePath, "sln");
+            var type = CompileTheCode(context, theClass.ToString());
 
-            if (solutionFile == null || projectFile == null) {
+            if (type == null) {
                 return;
             }
 
-            var workspace = MSBuildWorkspace.Create();
-            var solution = workspace.OpenSolutionAsync(solutionFile).Result;
-            Project project = null;
-            foreach (var projectId in solution.ProjectIds) {
-                project = solution.GetProject(projectId);
-                if (project.FilePath == projectFile) {
-                    break;
+            try {
+                testFramework.Run(type, method, semanticModel);
+                return;
+            }
+            catch (Exception ex) {
+                if (ex.InnerException != null) {
+                    ex = ex.InnerException;
                 }
+                var message = ex.Message;
+                var diag = Diagnostic.Create(Rule, method.GetLocation(), message);
+                context.ReportDiagnostic(diag);
             }
-            if (project == null) {
-                return;
-            }
-            
+
+            //var workspace = MSBuildWorkspace.Create();
+            //var solution = workspace.OpenSolutionAsync(solutionFile).Result;
+            //Project project = null;
+            //foreach (var projectId in solution.ProjectIds) {
+            //    project = solution.GetProject(projectId);
+            //    if (project.FilePath == projectFile) {
+            //        break;
+            //    }
+            //}
+            //if (project == null) {
+            //    return;
+            //}
+
+
+            //var tree = context.SemanticModel.SyntaxTree;
+            //var projectFile = Find(tree.FilePath, "*proj");
+            //var solutionFile = Find(tree.FilePath, "sln");
+
+            //if (solutionFile == null || projectFile == null) {
+            //    return;
+            //}
+
+
+            //var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+            //options = options.WithAllowUnsafe(true);                                //Allow unsafe code;
+            //options = options.WithOptimizationLevel(OptimizationLevel.Release);     //Set optimization level
+            //options = options.WithPlatform(Platform.AnyCpu);                           //Set platform
+
+            //var Mscorlib = PortableExecutableReference.CreateFromFile(typeof(object).GetTypeInfo().Assembly.Location);
+            //var compilation = CSharpCompilation.Create("MyCompilation",
+            //                    syntaxTrees: new[] { tree },
+            //                    references: new[] { Mscorlib },
+            //                    options: options);
 
 
 
 
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
-            options = options.WithAllowUnsafe(true);                                //Allow unsafe code;
-            options = options.WithOptimizationLevel(OptimizationLevel.Release);     //Set optimization level
-            options = options.WithPlatform(Platform.AnyCpu);                           //Set platform
 
-            var Mscorlib = PortableExecutableReference.CreateFromFile(typeof(object).GetTypeInfo().Assembly.Location);
-            var compilation = CSharpCompilation.Create("MyCompilation",
-                                syntaxTrees: new[] { tree },
-                                references: new[] { Mscorlib },
-                                options: options);
+ 
 
+            //var mscorlib = MetadataReference.CreateFromFile(typeof(object).GetTypeInfo().Assembly);
+
+
+
+        }
+
+        private static Type CompileTheCode(SyntaxNodeAnalysisContext context, string fullClassName) {
+            var compilation = context.SemanticModel.Compilation;
             using (var ms = new MemoryStream()) {
                 var result = compilation.Emit(ms);
 
@@ -122,39 +151,39 @@ namespace TddAnalyzer {
                     foreach (Diagnostic diagnostic in failures) {
                         Debug.WriteLine("{0}: {1}", diagnostic.Id, diagnostic.GetMessage());
                     }
-                    return;
+                    return null;
                 }
                 ms.Seek(0, SeekOrigin.Begin);
                 var assembly = Assembly.Load(ms.ToArray());
 
-                Type type = assembly.GetType("RoslynCompileSample.Writer");
-                object obj = Activator.CreateInstance(type);
-                type.InvokeMember("Write",
-                    BindingFlags.Default | BindingFlags.InvokeMethod,
-                    null,
-                    obj,
-                    new object[] { "Hello World" });
-            }
-
-
-
-            
-
-            //var mscorlib = MetadataReference.CreateFromFile(typeof(object).GetTypeInfo().Assembly);
-            
-            
-            try {
-                testFramework.Run(method, semanticModel);
-                return;
-            }
-            catch (Exception ex) {
-                if (ex.InnerException != null) {
-                    ex = ex.InnerException;
+                _references.Clear();
+                foreach (var reference in compilation.References) {
+                    var path = reference.Display;
+                    var name = Path.GetFileNameWithoutExtension(path);
+                    _references.Add(name, path);
                 }
-                var message = ex.Message;
-                var diag = Diagnostic.Create(Rule, method.GetLocation(), message);
-                context.ReportDiagnostic(diag);
+
+                AppDomain.CurrentDomain.AssemblyResolve += (s, a) => {
+                    var name = a.Name;
+                    var index = name.IndexOf(',');
+                    if (index > 0) {
+                        name = name.Substring(0, index);
+                    }
+                    var bytes = File.ReadAllBytes(_references[name]);
+                    return Assembly.Load(bytes);
+                };
+
+
+                foreach (var reference in compilation.References) {
+                    var bytes = File.ReadAllBytes(reference.Display);
+                    Assembly.Load(bytes);
+                }
+                return assembly.GetType(fullClassName);
             }
+        }
+
+        private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args) {
+            throw new NotImplementedException();
         }
 
         private static TestFramework ChooseTestFramework(MethodDeclarationSyntax method) {

@@ -24,20 +24,15 @@ namespace TddAnalyzer.Frameworks {
 
         private SemanticModel _semanticModel;
 
-        public void Run(MethodDeclarationSyntax method, SemanticModel semanticModel) {
+        public void Run(Type type, MethodDeclarationSyntax method, SemanticModel semanticModel) {
             _semanticModel = semanticModel;
-            var testObject = CreateObject(method);
+            var testObject = CreateObject(type);
             ExecuteSetup(testObject, method);
             ExecuteTest(testObject, method);
             ExecuteTearDown(testObject, method);
         }
         
-        protected virtual object CreateObject(MethodDeclarationSyntax method) {
-            var methodSymbol = GetMethodSymbol(method);
-            var theClass = methodSymbol.ContainingType;
-            var fullClassName = theClass.ToString();
-            var assembly = theClass.ContainingAssembly.Name;
-            var type = ReflectionHelper.GetType(fullClassName, assembly);
+        protected virtual object CreateObject(Type type) {
             return Activator.CreateInstance(type);
         }
 

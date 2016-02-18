@@ -43,6 +43,10 @@ namespace TddAnalyzer {
 
         private static void Analyze(SyntaxNodeAnalysisContext context) {
             var tree = context.SemanticModel.SyntaxTree;
+            var comp = context.SemanticModel.Compilation;
+            var ms = new MemoryStream();
+            var emitResult = comp.Emit(ms);
+            //Assembly.Load(new AssemblyName(
 
             //CSharpScript.RunAsync(tree);
 
@@ -55,8 +59,8 @@ namespace TddAnalyzer {
             //var emitResult = compilation.Emit(ms);
 
 
-            var workspace = MSBuildWorkspace.Create();
-            var solution = workspace.OpenSolutionAsync(slnPatwretrth).Result;
+            //var workspace = MSBuildWorkspace.Create();
+            //var solution = workspace.OpenSolutionAsync(slnPatwretrth).Result;
 
             var method = (MethodDeclarationSyntax)context.Node;
             var semanticModel = context.SemanticModel;
