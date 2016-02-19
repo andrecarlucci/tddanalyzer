@@ -31,6 +31,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AppDomainToolkit, Version=1.0.4.1, Culture=neutral, PublicKeyToken=f2fc7ab5180cf5c4, processorArchitecture=MSIL">
+      <HintPath>..\packages\AppDomainToolkit.1.0.4.3\lib\net\AppDomainToolkit.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Microsoft.CodeAnalysis, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.CodeAnalysis.Common.1.1.1\lib\net45\Microsoft.CodeAnalysis.dll</HintPath>
       <Private>True</Private>
@@ -89,6 +93,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CodeCompilation\CompilationResult.cs" />
+    <Compile Include="CodeCompilation\Compiler.cs" />
+    <Compile Include="CodeCompilation\IsolatedInvoker.cs" />
+    <Compile Include="CodeCompilation\Launcher.cs" />
     <Compile Include="CSharpAnalyzerExtensions.cs" />
     <Compile Include="DiagnosticAnalyzer.cs" />
     <Compile Include="Frameworks\Nunit.cs" />
